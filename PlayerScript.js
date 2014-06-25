@@ -167,8 +167,11 @@ function MovePlayer(player, latAndLon, venueName) {
 	//TODO: Orientation not working here, maybe would after assigning it many times, have to test this.
 	placeable.SetOrientation(LookAtPoint(player.placeable.WorldPosition(), plane.placeable.WorldPosition()));
 	
+	/* Get Y coordinate by shooting a RayCast down to get the mesh y coordinate. */
+	var raycast = CheckYCoordinate(new float3(longitudeInMeters, 11, latitudeInMeters));
+
 	transform.pos.x = longitudeInMeters;
-	transform.pos.y = 7; //Highest of Oulu3D
+	transform.pos.y = raycast.pos.y; //Highest of Oulu3D
 	transform.pos.z = latitudeInMeters;
 
 	//Assign new values to player placeable object.
@@ -182,6 +185,20 @@ function MovePlayer(player, latAndLon, venueName) {
 		player.animationcontroller.EnableExclusiveAnimation('stand', true, 1, 1, false);
 	});
 }	
+
+/** Function to check the Y for transform by shooting raycast down to get the coordinate for ground level.
+ * @param {Object} position - Position to which avatar is moving, shoot raycast from it.
+ *
+ */
+var CheckYCoordinate = function (position) {
+	var ray = new Ray(position, new float3(0, -1, 0));
+	var result = scene.ogre.Raycast(ray, 0xffffffff);
+	Log("RayCast hitpoint is " + result.pos);
+
+
+	return result;
+} 
+
 
 /** 
  * Orientation function for player, currently not working for some reasoń. 

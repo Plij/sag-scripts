@@ -62,7 +62,6 @@ var interval = 0;
 //Hook Update to frame.Updated
 frame.Updated.connect(Update);
 
-
 /** 
  * Update function that is ran on every frame.
  * @param {int} frametime - Int to check how many frames are through.
@@ -155,8 +154,10 @@ function LookAt(source, destination) {
 
 /**
  * Move player to destination if new destination is more than 20m away (Check dist < 20 if you wanna change the value for movement.).
+ * @param {object} user - Player who is being moved
+ * @param {int} frametime - Current frametime.
 */
-var MoveAvatar = function() {
+var MoveAvatar = function(user, frametime) {
 	//0 , 0 on 3d map.
 	var latZero =  65.012115;
 	var lonZero = 25.473323;
@@ -164,7 +165,7 @@ var MoveAvatar = function() {
 	//Later change to this:
 	var lat = user.latitude;
 	var lon = user.longitude; 
-      
+
 	var avatar = scene.EntityByName(user.username);
 
 	var longitudeInMeters = CalcLong(lonZero, lon, latZero, lat);
@@ -198,11 +199,28 @@ var MoveAvatar = function() {
 		return;
 	}
 
+	/* Get Y coordinate by shooting a RayCast down to get the mesh y coordinate. */
+	var raycast = CheckYCoordinate(new float3(longitudeInMeters, 11, latitudeInMeters));
+
 	var transform = avatar.placeable.transform;
 	transform.pos.x = longitudeInMeters;
 	transform.pos.z = latitudeInMeters;
+	transform.pos.y = raycast.pos.y;
 	avatar.placeable.transform = transform;
 }
+
+/** Function to check the Y for transform by shooting raycast down to get the coordinate for ground level.
+ * @param {Object} position - Position to which avatar is moving, shoot raycast from it.
+ *
+ */
+var CheckYCoordinate = function (position) {
+	var ray = new Ray(position, new float3(0, -1, 0));
+	var result = scene.ogre.Raycast(ray, 0xffffffff);
+	Log("RayCast hitpoint is " + result.pos);
+
+
+	return result;
+} 
 
 /**
  * If distance to destination is less than 20meters, Avatar will animate and walk to destination.
@@ -264,6 +282,10 @@ var WalkToDestination = function (frametime) {
     tm.pos.x = finalMovementX;
     tm.pos.z = finalMovementZ;
 
+    /* Get Y coordinate by shooting a RayCast down to get the mesh y coordinate. */
+	var raycast = CheckYCoordinate(new float3(finalMovementX, 11, finalMovementZ));
+
+	tm.pos.y = raycast.pos.y;
     //Assign value to script owner - Police bot
    	globalEntity.placeable.transform = tm;
    	globalEntity.placeable.SetOrientation(LookAt(globalEntity.placeable.transform.pos, 
@@ -356,16 +378,19 @@ var addAvatar = function(user, frametime){
 	if (dlat > 0)
 		latitudeInMeters = -latitudeInMeters;
 
+	/* Get Y coordinate by shooting a RayCast down to get the mesh y coordinate. */
+	var raycast = CheckYCoordinate(new float3(longitudeInMeters, 11, latitudeInMeters));
+
 	var placeable = avatarEntity.placeable;
 	var transform = placeable.transform;
 	transform.pos.x = longitudeInMeters;
-	transform.pos.y = 11; //Highest of Oulu3D
+	transform.pos.y = raycast.pos.y;
 	transform.pos.z = latitudeInMeters;
 	placeable.transform = transform;
 
+	Log("Adding player in " + placeable.transform.pos);
 	//Make sure animations are correct.
 	checkAnims(avatarEntity);
-
 }
 
 /** Haversine based function to transform GPS longitude to Cartesian X coordinate in our 3D model. Expected that world is flat, works well on a small area.
