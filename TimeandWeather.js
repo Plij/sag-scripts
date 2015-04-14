@@ -1,12 +1,3 @@
-/**  Script to change Weather and other phenomenons for the scene to relate real world.
-* @author Lasse Annola <lasseann@ee.oulu.fi>
-*/
-
-/** 
- * Script to change Weather and other phenomenons for the scene to relate real world. Currently no sound, if some is recorded should be added here.
- * @module Time&Weather
- */
-
 // Include our utils script that has asset storage and bytearray utils etc.
 // !ref: http://meshmoon.data.s3.amazonaws.com/app/lib/admino-utils-common-deploy.js, Script
 // !ref: http://meshmoon.data.s3.amazonaws.com/app/lib/class.js, Script
@@ -20,39 +11,55 @@ SetLogChannelName("Time And Weather Script"); //this can be anything, but best i
 
 frame.Updated.connect(Update);
 
-/** Simple interval on how often we get weather info from OpenWeatherMap.org.
- * @type int */
 var interval = 45000;
-
-/** The WeatherEntity which has SkyX and so on.
- * @type Object */
+var timeinterval = 1500;
+var day = null;
+var updateTimes = ['08:00', '14:00', '20:00'];
 var entity = scene.EntityByName('WeatherEntity');
 
-/** 
- * Update function that is ran on every frame.
- * @param {int} frametime - Int to check how many frames are through.
- */
+//Time for SkyX
 function Update (frametime) {
+           /*if (timeinterval >= 1500)
+           {
+            timeinterval = 0;
+            //setTimeForSkyX();
+            }else timeinterval++;*/
+
 	if (interval >= 45000) {
 		interval = 0;	
-		GetWeather();
+		getWeather();
 	} else 
 		interval++;
 }
 
 
-/** 
- * Get Weather information from OpenWeatherMap API for Oulu and parse information that we need. Later call SetWeather to assign values for our SkyX object.
- */
-function GetWeather() {
-	var url = 'http://api.openweathermap.org/data/2.1/weather/city/643492';
+function setTimeForSkyX() {
+	var date = new Date();
+	var hrs = date.getHours();
+
+	//Add 0 to time, so its 7:07 not 7:7
+	if (date.getMinutes() < 10)
+		this.me.skyx.time = date.getHours() + '.' + 0 + date.getMinutes();
+	else 
+		this.me.skyx.time = date.getHours() + '.' + date.getMinutes();
+        Log (this.me.skyx.time);
+
+}
+
+/* Use OpenWeatherMap API to get current weather information from Oulu. 
+	We use these to manipulate the scene into looking how Oulu actually is at the moment. 
+	(API is called once a day.) */
+function getWeather() {
+	var url = 'http://api.openweathermap.org/data/2.5/weather?id=643492';
 	var transfer = asset.RequestAsset(url, "Binary", true);
 	transfer.Succeeded.connect(function(){
 		var json = JSON.parse(transfer.RawData());
 		var name = json.name;
 		var wind = json.wind;
 		var speedOfWind = wind.speed;
-		var cloudPercentage = json.clouds.all;
+        var directionOfWind = wind.deg;
+		var cloudPercentage = parseFloat(json.clouds.all).toFixed(2);
+        var humidity = json.main.humidity;
 		var weather = json.weather;
 
 		for (var i in weather) {
@@ -63,19 +70,18 @@ function GetWeather() {
 		var desc = weather.description;
 
 		this.me.skyx.cloudCoverage = cloudPercentage;
+        this.me.skyx.cloudAverageSize = cloudPercentage;
 		this.me.skyx.windSpeed = speedOfWind;
-
-		SetWeather(mainWeather, desc);
+        this.me.skyx.windDirection = directionOfWind;
+        
+		setWeather(mainWeather, desc);
 	});
+	
+	Log('getWeather');
+
 }
 
-
-/** 
- * Set weather data that we got and parsed. TODO: Thunder not made yet for our logic. Add later if we have time.
- * @param {String} mainWeather - Main status of our weather (Snow,  Rain, Mist & etc)
- * @param {String} desc - Description of weather to get more specific information about (Light snow, light rain or so.)
- */
-function SetWeather(mainWeather, desc) {
+function setWeather(mainWeather, desc) {
 /* Different weathers that can be manipulated in scene. */
 		Log(mainWeather + "--" + desc);
 		if (mainWeather == 'Snow' && desc != 'light snow') {
@@ -106,12 +112,12 @@ function SetWeather(mainWeather, desc) {
 
 			this.me.fog.mode = 3;
 			this.me.fog.startDistance = 2;
-            this.me.fog.endDistance = 100;
+                              this.me.fog.endDistance = 100;
 			this.me.fog.expDensity = 1,0;
-            entity.particlesystem.enabled = true;
+                              entity.particlesystem.enabled = true;
 		} else 
                         entity.particlesystem.enabled = false;
-
+          
 		if (mainWeather == 'Mist') {
 			this.me.fog.mode = 2;
 			this.me.fog.startDistance = 5;
