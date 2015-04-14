@@ -1,3 +1,14 @@
+/*  Script to change Weather and other phenomenons for the scene to relate real world.
+    Can be used for other Meshmoon scenes as well, replace line 64 with your own location reference and add weather effects or 
+	copy from SAG scene
+ @author Lasse Annola <lasseann@ee.oulu.fi>
+*/
+
+/* 
+  Script to change Weather and other phenomenons for the scene to relate real world. Currently no sound, if some is recorded should be added here.
+  @module Time&Weather
+ */
+ 
 // Include our utils script that has asset storage and bytearray utils etc.
 // !ref: http://meshmoon.data.s3.amazonaws.com/app/lib/admino-utils-common-deploy.js, Script
 // !ref: http://meshmoon.data.s3.amazonaws.com/app/lib/class.js, Script
