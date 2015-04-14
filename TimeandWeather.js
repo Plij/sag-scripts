@@ -68,7 +68,7 @@ function getWeather() {
 		var name = json.name;
 		var wind = json.wind;
 		var speedOfWind = wind.speed;
-        var directionOfWind = wind.deg;
+        var directionOfWind = wind.deg - 90;
 		var cloudPercentage = parseFloat(json.clouds.all).toFixed(2);
         var humidity = json.main.humidity;
 		var weather = json.weather;
