@@ -70,21 +70,28 @@ function getWeather() {
 		var speedOfWind = wind.speed;
         var directionOfWind = wind.deg - 90;
 		var cloudPercentage = parseFloat(json.clouds.all).toFixed(2);
-        var humidity = json.main.humidity;
-		var weather = json.weather;
-
-		for (var i in weather) {
-			var mainWeather = weather[i].main;
-			var desc = weather[i].description;
-		}
 		
-		var desc = weather.description;
+        var sunrise = parseInt(json.sys.sunrise) + 7200;
+        var sunset = parseInt(json.sys.sunset) + 7200;
 
+        var sunriseDate = new Date();
+        sunriseDate.setTime(sunrise * 1000);
+        var sunriseH = parseFloat(sunriseDate.getHours()).toFixed(2); //TODO make this more precise
+              
+        var sunsetDate = new Date(sunset);
+        sunsetDate.setTime(sunset * 1000);
+        var sunsetH = parseFloat(sunsetDate.getHours()).toFixed(2);
+        
 		this.me.skyx.cloudCoverage = cloudPercentage;
         this.me.skyx.cloudAverageSize = cloudPercentage;
 		this.me.skyx.windSpeed = speedOfWind;
         this.me.skyx.windDirection = directionOfWind;
+        this.me.skyx.sunriseTime = sunriseH;
+        this.me.skyx.sunsetTime = sunsetH;
         
+		var mainWeather = json.weather[0].main; //For weather effects	
+		var desc = json.weather[0].description;
+       
 		setWeather(mainWeather, desc);
 	});
 	
