@@ -154,15 +154,6 @@ function setWeather(mainWeather, desc) {
 		}
 
 		if (mainWeather == 'Thunderstorm') { //TODO add the lighning prop
-			//Heavier or heavy rain. Also streets are flooded
-			entity.mesh.materialRefs = new Array('http://meshmoon.eu.scenes.2.s3.amazonaws.com/mediateam-b4527d/test2/particle/rain_prop2_mat.material');
-			entity.mesh.meshRef = 'http://meshmoon.eu.scenes.2.s3.amazonaws.com/mediateam-b4527d/test2/particle/rain_prop2.mesh';
-			entity.particlesystem.particleRef = 'http://meshmoon.eu.scenes.2.s3.amazonaws.com/mediateam-b4527d/test2/particle/rain_prop.particle';
-
-			this.me.fog.mode = 3;
-			this.me.fog.startDistance = 2;
-                              this.me.fog.endDistance = 100;
-			this.me.fog.expDensity = 1,0;
-                              entity.particlesystem.enabled = true;
+			//TODO lower ambient light and lightning prop particle on
 		}
 }
