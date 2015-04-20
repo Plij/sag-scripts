@@ -1,7 +1,7 @@
 /*  Script to change Weather and other phenomenons for the scene to relate real world.
     Can be used for other Meshmoon scenes as well, replace line 64 with your own location reference and add weather effects or 
 	copy from SAG scene
- @author Lasse Annola <lasseann@ee.oulu.fi>
+ Original author Lasse Annola <lasseann@ee.oulu.fi>
 */
 
 /* 
@@ -47,7 +47,7 @@ function Update (frametime) {
 function setTimeForSkyX() {
 	var date = new Date();
 	var hrs = date.getHours();
-
+	
 	//Add 0 to time, so its 7:07 not 7:7
 	if (date.getMinutes() < 10)
 		this.me.skyx.time = date.getHours() + '.' + 0 + date.getMinutes();
@@ -70,28 +70,37 @@ function getWeather() {
 		var speedOfWind = wind.speed;
         var directionOfWind = wind.deg - 90;
 		var cloudPercentage = parseFloat(json.clouds.all).toFixed(2);
-		
-        var sunrise = parseInt(json.sys.sunrise) + 7200;
-        var sunset = parseInt(json.sys.sunset) + 7200;
-
-        var sunriseDate = new Date();
-        sunriseDate.setTime(sunrise * 1000);
-        var sunriseH = parseFloat(sunriseDate.getHours()).toFixed(2); //TODO make this more precise
-              
-        var sunsetDate = new Date(sunset);
-        sunsetDate.setTime(sunset * 1000);
-        var sunsetH = parseFloat(sunsetDate.getHours()).toFixed(2);
         
 		this.me.skyx.cloudCoverage = cloudPercentage;
         this.me.skyx.cloudAverageSize = cloudPercentage;
 		this.me.skyx.windSpeed = speedOfWind;
         this.me.skyx.windDirection = directionOfWind;
-        this.me.skyx.sunriseTime = sunriseH;
-        this.me.skyx.sunsetTime = sunsetH;
         
 		var mainWeather = json.weather[0].main; //For weather effects	
 		var desc = json.weather[0].description;
+        var json = JSON.parse(transfer.RawData());
+        var sunrise = parseInt(json.sys.sunrise) + 3600;
+        var sunset = parseInt(json.sys.sunset) + 3600;
+        var current = parseInt(json.dt) + 0; //Needs some addjustement, approximate
        
+        var sunriseDate = new Date();
+        sunriseDate.setTime(sunrise * 1000);
+        var sunriseH = parseFloat(sunriseDate.getHours()).toFixed(2); //TODO make this more precise              
+        var sunsetDate = new Date(sunset);
+        sunsetDate.setTime(sunset * 1000);
+        var sunsetH = parseFloat(sunsetDate.getHours()).toFixed(2);
+        this.me.skyx.sunriseTime = sunriseH;
+        this.me.skyx.sunsetTime = sunsetH;
+        
+         var curDate = new Date();
+         curDate.setTime(current * 1000);
+        if (curDate.getMinutes() < 10)
+		this.me.skyx.time = curDate.getHours() + '.' + 0 + curDate.getMinutes();
+	    else 
+		this.me.skyx.time = curDate.getHours() + '.' + curDate.getMinutes();
+        
+        Log("CurrentTime: " + curDate + "sunset: " + sunsetH + "--" + "sunrise: " + sunriseH);
+        
 		setWeather(mainWeather, desc);
 	});
 	
@@ -126,7 +135,7 @@ function setWeather(mainWeather, desc) {
 			//Heavier or heavy rain. Also streets are flooded
 			entity.mesh.materialRefs = new Array('http://meshmoon.eu.scenes.2.s3.amazonaws.com/mediateam-b4527d/test2/particle/rain_prop2_mat.material');
 			entity.mesh.meshRef = 'http://meshmoon.eu.scenes.2.s3.amazonaws.com/mediateam-b4527d/test2/particle/rain_prop2.mesh';
-			entity.particlesystem.particleRef = 'http://meshmoon.eu.scenes.2.s3.amazonaws.com/mediateam-b4527d/test2/particle/lightrain_prop.particle';
+			entity.particlesystem.particleRef = 'http://meshmoon.eu.scenes.2.s3.amazonaws.com/mediateam-b4527d/test2/particle/rain_prop.particle';
 
 			this.me.fog.mode = 3;
 			this.me.fog.startDistance = 2;
@@ -144,7 +153,16 @@ function setWeather(mainWeather, desc) {
 			this.me.fog.mode = 0;
 		}
 
-		if (mainWeather == 'Thunderstorm') {
-			/* Maybe some thundah? */
+		if (mainWeather == 'Thunderstorm') { //TODO add the lighning prop
+			//Heavier or heavy rain. Also streets are flooded
+			entity.mesh.materialRefs = new Array('http://meshmoon.eu.scenes.2.s3.amazonaws.com/mediateam-b4527d/test2/particle/rain_prop2_mat.material');
+			entity.mesh.meshRef = 'http://meshmoon.eu.scenes.2.s3.amazonaws.com/mediateam-b4527d/test2/particle/rain_prop2.mesh';
+			entity.particlesystem.particleRef = 'http://meshmoon.eu.scenes.2.s3.amazonaws.com/mediateam-b4527d/test2/particle/rain_prop.particle';
+
+			this.me.fog.mode = 3;
+			this.me.fog.startDistance = 2;
+                              this.me.fog.endDistance = 100;
+			this.me.fog.expDensity = 1,0;
+                              entity.particlesystem.enabled = true;
 		}
 }
